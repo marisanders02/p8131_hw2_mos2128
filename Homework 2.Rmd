@@ -1,0 +1,118 @@
+---
+title: "Homework 2"
+author: "Mari Sanders"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(MASS)
+```
+
+# Problem 1 
+
+In linear regression, the equation generates the $\beta$ values so that you can inter
+log odds vs beta 
+link function 
+binary vs. not 
+mles in logistic regression vs. least squares in linear regression
+linear regression assumes normal distribution of errors vs. logistic doesn't assume a distribution for errors 
+
+# Problem 2 
+Odds = pi/1-pi, which is the probability of an event occuring. This is interpretable because it is in terms of the original equation and also easy to understand. 
+log(odds) = log(pi/1-pi), which is the probability of odds ratio given that the values are in terms of log, which is less interpretable 
+
+# Problem 3 
+
+lasso + ridge is penalty 
+
+L1 Regularization: Also called a lasso regression, adds the absolute value of the sum (“absolute value of magnitude”) of coefficients as a penalty term to the loss function.
+L2 Regularization: Also called a ridge regression, adds the squared sum (“squared magnitude”) of coefficients as the penalty term to the loss function.
+ridge shrinks coefficients 
+lasso makes some coeffients go to zero 
+
+# Problem 4 
+
+# Problem 5
+
+```{r}
+dose <- c(0,1,2,3,4)
+dying <- c(2, 8, 15, 23, 27)
+data <- data.frame(dose, dying)
+
+resp <- cbind(died = data$dying, alive = 30 - data$dying) 
+pred <- data$dose
+
+predict_prob <- function(model, new_dose) {
+  pred <- predict(model, newdata = data.frame(dose = new_dose), type = "response")
+  return(pred)
+}
+
+fitlogit <- glm(resp~pred,family=binomial(link='logit'),data= data)
+summary(fitlogit)
+confint(fitlogit) 
+exp(confint(fitlogit))
+devfitlogit <- sum(residuals(fitlogit,type='deviance')^2)
+p_logit <- predict(fitlogit, newdata = data.frame(dose = 0.01), type = "response")
+
+
+fitprobit <- glm(resp~pred,family=binomial(link='probit'),data= data)
+summary(fitprobit)
+confint(fitprobit) 
+exp(confint(fitprobit))
+devprobit <- sum(residuals(fitprobit,type='deviance')^2)
+
+p_probit <- predict(fitprobit, newdata = data.frame(dose = 0.01), type = "response")
+
+fitcloglog <- glm(resp~pred, family = binomial(link = "cloglog" ))
+summary(fitcloglog)
+confint(fitcloglog) 
+exp(confint(fitcloglog))
+devcloglog <- sum(residuals(fitcloglog,type='deviance')^2)
+
+p_cloglog <- predict(fitcloglog, newdata = data.frame(dose = 0.01), type = "response")
+```
+
+Logit: $\beta_1 = $ `r exp(1.1619)`
+The CI for $\beta_1$ is (2.29372916, 4.6932687). 
+- Deviance: `r devfitlogit`
+$\hat p(dying|X = 0.01) = $
+
+Probit: $\beta =$ `r exp(0.68638)`
+The CI for $\beta_1$ is (1.6542999, 2.420596)
+- Deviance: `r devprobit`
+
+Cloglog: $\beta = $  `r exp(0.7468)`. 
+The CI for $\beta_1$ is (1.72630302, 2.6242181)
+- Deviance: `r devcloglog`
+
+
+# Problem 6 
+
+```{r}
+amount <- seq(from = 10, to = 90, by = 5)
+offers <- c(4, 6, 10, 12, 39, 36, 22, 14, 10, 12, 8, 9, 3, 1, 5, 2, 1)
+enrolls <- c(0, 2, 4, 2, 12, 14, 10, 7, 5, 5, 3, 5, 2, 0, 4, 2, 1)
+declined <- offers - enrolls 
+data <- data.frame(amount, offers, enrolls, declined)
+
+mphfit <- glm(cbind(enrolls, declined) ~ amount,
+              family=binomial(link='logit'),data= data)
+summary(mphfit)
+```
+### a) 
+```{r}
+devmph <- sum(residuals(mphfit,type='deviance')^2)
+
+sum(residuals(mphfit,type='pearson')^2) 
+pval=1-pchisq(devmph,17-2)
+```
+
+### b) 
+```{r}
+confint(mphfit)
+exp(confint(mphfit))
+```
+
