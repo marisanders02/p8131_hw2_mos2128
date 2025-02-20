@@ -8,32 +8,55 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(ResourceSelection)
 library(MASS)
 ```
 
 # Problem 1 
+*Linear Regression*
 
-In linear regression, the equation generates the $\beta$ values so that you can inter
-log odds vs beta 
-link function 
-binary vs. not 
-mles in logistic regression vs. least squares in linear regression
-linear regression assumes normal distribution of errors vs. logistic doesn't assume a distribution for errors 
+- Uses continuous outcome variables.
+
+- Assumes a linear relationship between the outcome and predictors.
+
+- Coefficients represent the change in the dependent variable for a one-unit change in an independent variable.
+
+- Errors are assumed to be normally distributed.
+
+- Output is continuous and can take any real number.
+
+- Uses RMSE or MSE to evaluate model fit
+
+*Logistic Regression*
+
+- Uses binary or categorical outcome variables.
+
+- Models non-linear relationships using the logit function and probabilities.
+
+- Coefficients are expressed as log odds, meaning a unit change in an independent variable affects the log odds of the outcome.
+
+- Errors follow a binomial distribution.
+
+- Output is a probability between 0 and 1.
+
+- Uses deviance and score to evaluate model fit
 
 # Problem 2 
-Odds = pi/1-pi, which is the probability of an event occuring. This is interpretable because it is in terms of the original equation and also easy to understand. 
-log(odds) = log(pi/1-pi), which is the probability of odds ratio given that the values are in terms of log, which is less interpretable 
+$Odds = \frac{pi}{1-pi}$, which is the probability of an event occurring over the probability of the event not occurring. If you do $e^{\beta}$ to the coefficients in logistic regression, you will get the odds ratio. This is interpretable because it is in terms of the original equation and also easy to understand. 
+
+$log(odds) = log(pi/1-pi)$, which is the probability of odds ratio given that the values are in terms of log, which is less interpretable. The coefficients $\beta$ in logistic regression are in terms of log odds, such that a change in log-odds for a one-unit increase in the outcome. 
 
 # Problem 3 
 
-lasso + ridge is penalty 
 
-L1 Regularization: Also called a lasso regression, adds the absolute value of the sum (“absolute value of magnitude”) of coefficients as a penalty term to the loss function.
-L2 Regularization: Also called a ridge regression, adds the squared sum (“squared magnitude”) of coefficients as the penalty term to the loss function.
-ridge shrinks coefficients 
-lasso makes some coeffients go to zero 
+L1 Regularization: Also called a lasso regression, adds the absolute value of the sum of coefficients as a penalty term to the loss function. Lasso makes some of the coefficients go to zero
+
+L2 Regularization: Also called a ridge regression, adds the squared sum  of coefficients as the penalty term to the loss function.Ridge shrinks coefficients but does not make any coefficients go to zero. 
+
 
 # Problem 4 
+
+
 
 # Problem 5
 
@@ -45,49 +68,71 @@ data <- data.frame(dose, dying)
 resp <- cbind(died = data$dying, alive = 30 - data$dying) 
 pred <- data$dose
 
-predict_prob <- function(model, new_dose) {
-  pred <- predict(model, newdata = data.frame(dose = new_dose), type = "response")
-  return(pred)
-}
-
 fitlogit <- glm(resp~pred,family=binomial(link='logit'),data= data)
 summary(fitlogit)
 confint(fitlogit) 
-exp(confint(fitlogit))
+confint_logit <- exp(confint(fitlogit))
 devfitlogit <- sum(residuals(fitlogit,type='deviance')^2)
-p_logit <- predict(fitlogit, newdata = data.frame(dose = 0.01), type = "response")
+predict(fitlogit, data.frame(dose=0.01), se.fit=TRUE,type='response')
 
 
 fitprobit <- glm(resp~pred,family=binomial(link='probit'),data= data)
 summary(fitprobit)
 confint(fitprobit) 
-exp(confint(fitprobit))
+confint_probit <- exp(confint(fitprobit))
 devprobit <- sum(residuals(fitprobit,type='deviance')^2)
 
-p_probit <- predict(fitprobit, newdata = data.frame(dose = 0.01), type = "response")
+predict(fitprobit, data.frame(dose = 0.01), se.fit = TRUE,type = 'response')
 
-fitcloglog <- glm(resp~pred, family = binomial(link = "cloglog" ))
+fitcloglog <- glm(resp~pred, family = binomial(link = "cloglog"), data = data)
 summary(fitcloglog)
 confint(fitcloglog) 
-exp(confint(fitcloglog))
-devcloglog <- sum(residuals(fitcloglog,type='deviance')^2)
+confint_cloglog <- exp(confint(fitcloglog))
+devcloglog <- sum(residuals(fitcloglog,type = 'deviance')^2)
 
-p_cloglog <- predict(fitcloglog, newdata = data.frame(dose = 0.01), type = "response")
+predict(fitcloglog, data.frame(dose =0.01), se.fit=TRUE,type='response')
+
+list(fit = c(fitlogit, fitprobit, fitcloglog), 
+           confidence_interval = c(confint_logit, confint_probit, confint_cloglog),
+           deviance = c(devfitlogit, devprobit, devcloglog))
 ```
 
 Logit: $\beta_1 = $ `r exp(1.1619)`
+
 The CI for $\beta_1$ is (2.29372916, 4.6932687). 
+
 - Deviance: `r devfitlogit`
+
 $\hat p(dying|X = 0.01) = $
 
 Probit: $\beta =$ `r exp(0.68638)`
+
 The CI for $\beta_1$ is (1.6542999, 2.420596)
+
 - Deviance: `r devprobit`
 
 Cloglog: $\beta = $  `r exp(0.7468)`. 
+
 The CI for $\beta_1$ is (1.72630302, 2.6242181)
+
 - Deviance: `r devcloglog`
 
+### b) 
+
+```{r}
+beta0 <-  fitlogit$coefficients[1]
+beta1 <- fitlogit$coefficients[2]
+betacov <- vcov(fitlogit) 
+x0fit <- -beta0/beta1
+exp(x0fit)
+varx0=betacov[1,1]/(beta1^2)+betacov[2,2]*(beta0^2)/(beta1^4)-2*betacov[1,2]*beta0/(beta1^3)
+c(x0fit,sqrt(varx0)) # point est and se
+exp((x0fit+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0))) # 90% CI for LD50
+
+
+```
+
+We are 90% confident that the LD50 for this bioassay study is between 5.509631 and 9.9095
 
 # Problem 6 
 
@@ -102,12 +147,20 @@ mphfit <- glm(cbind(enrolls, declined) ~ amount,
               family=binomial(link='logit'),data= data)
 summary(mphfit)
 ```
+
 ### a) 
+
 ```{r}
 devmph <- sum(residuals(mphfit,type='deviance')^2)
 
 sum(residuals(mphfit,type='pearson')^2) 
+
 pval=1-pchisq(devmph,17-2)
+
+
+hl <- hoslem.test(mphfit$y, fitted(mphfit), g=10)  # fitted: returns \hat{pi}
+hl
+
 ```
 
 ### b) 
@@ -115,4 +168,10 @@ pval=1-pchisq(devmph,17-2)
 confint(mphfit)
 exp(confint(mphfit))
 ```
+
+For a 1 unit increase in amount, the odds of enrollment increases by 1.031434 . 
+
+We are 95% confident that the the odds ratio is between 1.01253611 and 1.0519063 meaning that a unit increase in the amount of money increases the odds of enrollment by 2%-5%. Since the confidence interval does not include 1, we can say that the effect is statistically significant. 
+
+### c) 
 
