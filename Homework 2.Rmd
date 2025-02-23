@@ -68,9 +68,10 @@ L2 Regularization: Adds the squared sum  of coefficients as the penalty term to 
 ```{r}
 dose <- c(0,1,2,3,4)
 dying <- c(2, 8, 15, 23, 27)
-data <- data.frame(dose, dying)
+tested <- rep(30,5)
+data <- data.frame(dose, tested, dying)
 
-resp <- cbind(died = data$dying, alive = 30 - data$dying) 
+resp <- cbind(died = data$dying, alive = tested - data$dying) 
 pred <- data$dose
 
 fitlogit <- glm(resp~pred,family=binomial(link='logit'),data= data)
@@ -79,7 +80,7 @@ beta_1 <- exp(fitlogit$coefficient[2])
 confint(fitlogit) 
 confint_logit <- exp(confint(fitlogit))
 devfitlogit <- sum(residuals(fitlogit,type='deviance')^2)
-predictionlogit <- predict(fitlogit, data.frame(dose=0.01), se.fit=TRUE,type='response')
+predictionlogit <- predict(fitlogit, data.frame(pred = 0.01), se.fit=TRUE,type='response')
 
 cat("Estimate:", exp(fitlogit$coefficients[2]), "\n",
     "CI:", c(confint_logit[2,1], confint_logit[2,2]), "\n",
@@ -98,7 +99,7 @@ confint(fitprobit)
 confint_probit <- exp(confint(fitprobit))
 devprobit <- sum(residuals(fitprobit,type='deviance')^2)
 
-predictionprobit <- predict(fitprobit, data.frame(dose = 0.01), se.fit = TRUE,type = 'response')
+predictionprobit <- predict(fitprobit, data.frame(pred = 0.01), se.fit = TRUE,type = 'response')
 cat("Estimate:", exp(fitprobit$coefficients[2]), "\n",
     "CI:", c(confint_probit[2,1], confint_probit[2,2]), "\n",
     "Deviance:", devprobit, "\n",
@@ -115,7 +116,7 @@ confint(fitcloglog)
 confint_cloglog <- exp(confint(fitcloglog))
 devcloglog <- sum(residuals(fitcloglog,type = 'deviance')^2)
 
-predictcloglog <- predict(fitcloglog, data.frame(dose =0.01), se.fit=TRUE,type='response')
+predictcloglog <- predict(fitcloglog, data.frame(pred =0.01), se.fit=TRUE,type='response')
 
 cat("Estimate:", exp(fitcloglog$coefficients[2]), "\n",
     "CI:", c(confint_cloglog[2,1], confint_cloglog[2,2]), "\n",

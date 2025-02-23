@@ -412,9 +412,10 @@ does not shrink any coefficients to zero.</p>
 <h2>Logit</h2>
 <pre class="r"><code>dose &lt;- c(0,1,2,3,4)
 dying &lt;- c(2, 8, 15, 23, 27)
-data &lt;- data.frame(dose, dying)
+tested &lt;- rep(30,5)
+data &lt;- data.frame(dose, tested, dying)
 
-resp &lt;- cbind(died = data$dying, alive = 30 - data$dying) 
+resp &lt;- cbind(died = data$dying, alive = tested - data$dying) 
 pred &lt;- data$dose
 
 fitlogit &lt;- glm(resp~pred,family=binomial(link=&#39;logit&#39;),data= data)
@@ -447,16 +448,16 @@ confint(fitlogit) </code></pre>
 <pre class="r"><code>confint_logit &lt;- exp(confint(fitlogit))</code></pre>
 <pre><code>## Waiting for profiling to be done...</code></pre>
 <pre class="r"><code>devfitlogit &lt;- sum(residuals(fitlogit,type=&#39;deviance&#39;)^2)
-predictionlogit &lt;- predict(fitlogit, data.frame(dose=0.01), se.fit=TRUE,type=&#39;response&#39;)</code></pre>
-<pre><code>## Warning: &#39;newdata&#39; had 1 row but variables found have 5 rows</code></pre>
-<pre class="r"><code>cat(&quot;Estimate:&quot;, exp(fitlogit$coefficients[2]), &quot;\n&quot;,
+predictionlogit &lt;- predict(fitlogit, data.frame(pred = 0.01), se.fit=TRUE,type=&#39;response&#39;)
+
+cat(&quot;Estimate:&quot;, exp(fitlogit$coefficients[2]), &quot;\n&quot;,
     &quot;CI:&quot;, c(confint_logit[2,1], confint_logit[2,2]), &quot;\n&quot;,
     &quot;Deviance:&quot;, devfitlogit, &quot;\n&quot;,
     &quot;P(dying|x=0.01):&quot;, predictionlogit$fit, &quot;\n&quot;)</code></pre>
 <pre><code>## Estimate: 3.195984 
 ##  CI: 2.293729 4.693269 
 ##  Deviance: 0.3787483 
-##  P(dying|x=0.01): 0.08917177 0.2383231 0.5 0.7616769 0.9108282</code></pre>
+##  P(dying|x=0.01): 0.09011997</code></pre>
 </div>
 <div id="probit" class="section level2">
 <h2>Probit</h2>
@@ -490,16 +491,15 @@ summary(fitprobit)</code></pre>
 <pre><code>## Waiting for profiling to be done...</code></pre>
 <pre class="r"><code>devprobit &lt;- sum(residuals(fitprobit,type=&#39;deviance&#39;)^2)
 
-predictionprobit &lt;- predict(fitprobit, data.frame(dose = 0.01), se.fit = TRUE,type = &#39;response&#39;)</code></pre>
-<pre><code>## Warning: &#39;newdata&#39; had 1 row but variables found have 5 rows</code></pre>
-<pre class="r"><code>cat(&quot;Estimate:&quot;, exp(fitprobit$coefficients[2]), &quot;\n&quot;,
+predictionprobit &lt;- predict(fitprobit, data.frame(pred = 0.01), se.fit = TRUE,type = &#39;response&#39;)
+cat(&quot;Estimate:&quot;, exp(fitprobit$coefficients[2]), &quot;\n&quot;,
     &quot;CI:&quot;, c(confint_probit[2,1], confint_probit[2,2]), &quot;\n&quot;,
     &quot;Deviance:&quot;, devprobit, &quot;\n&quot;,
     &quot;P(dying|x=0.01):&quot;, predictionprobit$fit, &quot;\n&quot;)</code></pre>
 <pre><code>## Estimate: 1.986512 
 ##  CI: 1.6543 2.420596 
 ##  Deviance: 0.3136684 
-##  P(dying|x=0.01): 0.08424186 0.2448734 0.4982721 0.7523961 0.9144112</code></pre>
+##  P(dying|x=0.01): 0.0853078</code></pre>
 </div>
 <div id="cloglog" class="section level2">
 <h2>Cloglog</h2>
@@ -533,16 +533,16 @@ summary(fitcloglog)</code></pre>
 <pre><code>## Waiting for profiling to be done...</code></pre>
 <pre class="r"><code>devcloglog &lt;- sum(residuals(fitcloglog,type = &#39;deviance&#39;)^2)
 
-predictcloglog &lt;- predict(fitcloglog, data.frame(dose =0.01), se.fit=TRUE,type=&#39;response&#39;)</code></pre>
-<pre><code>## Warning: &#39;newdata&#39; had 1 row but variables found have 5 rows</code></pre>
-<pre class="r"><code>cat(&quot;Estimate:&quot;, exp(fitcloglog$coefficients[2]), &quot;\n&quot;,
+predictcloglog &lt;- predict(fitcloglog, data.frame(pred =0.01), se.fit=TRUE,type=&#39;response&#39;)
+
+cat(&quot;Estimate:&quot;, exp(fitcloglog$coefficients[2]), &quot;\n&quot;,
     &quot;CI:&quot;, c(confint_cloglog[2,1], confint_cloglog[2,2]), &quot;\n&quot;,
     &quot;Deviance:&quot;, devcloglog, &quot;\n&quot;,
     &quot;P(dying|x=0.01):&quot;, predictcloglog$fit, &quot;\n&quot;)</code></pre>
 <pre><code>## Estimate: 2.110277 
 ##  CI: 1.726303 2.624218 
 ##  Deviance: 2.230479 
-##  P(dying|x=0.01): 0.12727 0.2496909 0.454591 0.7217655 0.9327715</code></pre>
+##  P(dying|x=0.01): 0.1281601</code></pre>
 <div id="b" class="section level3">
 <h3>b)</h3>
 <pre class="r"><code>beta0 &lt;-  fitlogit$coefficients[1]
