@@ -11,7 +11,7 @@
 
 <meta name="author" content="Mari Sanders" />
 
-<meta name="date" content="2025-02-19" />
+<meta name="date" content="2025-02-23" />
 
 <title>Homework 2</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">Homework 2</h1>
 <h4 class="author">Mari Sanders</h4>
-<h4 class="date">2025-02-19</h4>
+<h4 class="date">2025-02-23</h4>
 
 </div>
 
@@ -394,33 +394,28 @@ and also easy to understand.</p>
 is the probability of odds ratio given that the values are in terms of
 log, which is less interpretable. The coefficients <span class="math inline">\(\beta\)</span> in logistic regression are in terms
 of log odds, such that a change in log-odds for a one-unit increase in
-the outcome.</p>
-</div>
-<div id="problem-3" class="section level1">
-<h1>Problem 3</h1>
-<p>L1 Regularization: Also called a lasso regression, adds the absolute
-value of the sum of coefficients as a penalty term to the loss function.
-Lasso makes some of the coefficients go to zero</p>
-<p>L2 Regularization: Also called a ridge regression, adds the squared
-sum of coefficients as the penalty term to the loss function.Ridge
-shrinks coefficients but does not make any coefficients go to zero.</p>
+the outcome. f # Problem 3</p>
+<p>L1 Regularization: Adds the absolute value of the sum of coefficients
+as a penalty term to the RSS. Lasso makes some of the coefficients go to
+zero.</p>
+<p>L2 Regularization: Adds the squared sum of coefficients as the
+penalty term to the RSS. Ridge/L2 regularization shrinks coefficients
+toward each other so that they can borrow strength from each other, but
+does not shrink any coefficients to zero.</p>
 </div>
 <div id="problem-4" class="section level1">
 <h1>Problem 4</h1>
 </div>
 <div id="problem-5" class="section level1">
 <h1>Problem 5</h1>
+<div id="logit" class="section level2">
+<h2>Logit</h2>
 <pre class="r"><code>dose &lt;- c(0,1,2,3,4)
 dying &lt;- c(2, 8, 15, 23, 27)
 data &lt;- data.frame(dose, dying)
 
 resp &lt;- cbind(died = data$dying, alive = 30 - data$dying) 
 pred &lt;- data$dose
-
-predict_prob &lt;- function(model, new_dose) {
-  pred &lt;- predict(model, newdata = data.frame(dose = new_dose), type = &quot;response&quot;)
-  return(pred)
-}
 
 fitlogit &lt;- glm(resp~pred,family=binomial(link=&#39;logit&#39;),data= data)
 summary(fitlogit)</code></pre>
@@ -443,19 +438,28 @@ summary(fitlogit)</code></pre>
 ## AIC: 20.854
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
-<pre class="r"><code>confint(fitlogit) </code></pre>
+<pre class="r"><code>beta_1 &lt;- exp(fitlogit$coefficient[2])
+confint(fitlogit) </code></pre>
 <pre><code>## Waiting for profiling to be done...</code></pre>
 <pre><code>##                  2.5 %    97.5 %
 ## (Intercept) -3.2060617 -1.557314
 ## pred         0.8301789  1.546129</code></pre>
-<pre class="r"><code>exp(confint(fitlogit))</code></pre>
+<pre class="r"><code>confint_logit &lt;- exp(confint(fitlogit))</code></pre>
 <pre><code>## Waiting for profiling to be done...</code></pre>
-<pre><code>##                  2.5 %    97.5 %
-## (Intercept) 0.04051586 0.2107012
-## pred        2.29372916 4.6932687</code></pre>
 <pre class="r"><code>devfitlogit &lt;- sum(residuals(fitlogit,type=&#39;deviance&#39;)^2)
-p_logit &lt;- predict(fitlogit, newdata = data.frame(dose = 0.01), type = &quot;response&quot;)</code></pre>
+predictionlogit &lt;- predict(fitlogit, data.frame(dose=0.01), se.fit=TRUE,type=&#39;response&#39;)</code></pre>
 <pre><code>## Warning: &#39;newdata&#39; had 1 row but variables found have 5 rows</code></pre>
+<pre class="r"><code>cat(&quot;Estimate:&quot;, exp(fitlogit$coefficients[2]), &quot;\n&quot;,
+    &quot;CI:&quot;, c(confint_logit[2,1], confint_logit[2,2]), &quot;\n&quot;,
+    &quot;Deviance:&quot;, devfitlogit, &quot;\n&quot;,
+    &quot;P(dying|x=0.01):&quot;, predictionlogit$fit, &quot;\n&quot;)</code></pre>
+<pre><code>## Estimate: 3.195984 
+##  CI: 2.293729 4.693269 
+##  Deviance: 0.3787483 
+##  P(dying|x=0.01): 0.08917177 0.2383231 0.5 0.7616769 0.9108282</code></pre>
+</div>
+<div id="probit" class="section level2">
+<h2>Probit</h2>
 <pre class="r"><code>fitprobit &lt;- glm(resp~pred,family=binomial(link=&#39;probit&#39;),data= data)
 summary(fitprobit)</code></pre>
 <pre><code>## 
@@ -482,20 +486,29 @@ summary(fitprobit)</code></pre>
 <pre><code>##                  2.5 %     97.5 %
 ## (Intercept) -1.8436290 -0.9442144
 ## pred         0.5033779  0.8840139</code></pre>
-<pre class="r"><code>exp(confint(fitprobit))</code></pre>
+<pre class="r"><code>confint_probit &lt;- exp(confint(fitprobit))</code></pre>
 <pre><code>## Waiting for profiling to be done...</code></pre>
-<pre><code>##                 2.5 %   97.5 %
-## (Intercept) 0.1582421 0.388985
-## pred        1.6542999 2.420596</code></pre>
 <pre class="r"><code>devprobit &lt;- sum(residuals(fitprobit,type=&#39;deviance&#39;)^2)
 
-p_probit &lt;- predict(fitprobit, newdata = data.frame(dose = 0.01), type = &quot;response&quot;)</code></pre>
+predictionprobit &lt;- predict(fitprobit, data.frame(dose = 0.01), se.fit = TRUE,type = &#39;response&#39;)</code></pre>
 <pre><code>## Warning: &#39;newdata&#39; had 1 row but variables found have 5 rows</code></pre>
-<pre class="r"><code>fitcloglog &lt;- glm(resp~pred, family = binomial(link = &quot;cloglog&quot; ))
+<pre class="r"><code>cat(&quot;Estimate:&quot;, exp(fitprobit$coefficients[2]), &quot;\n&quot;,
+    &quot;CI:&quot;, c(confint_probit[2,1], confint_probit[2,2]), &quot;\n&quot;,
+    &quot;Deviance:&quot;, devprobit, &quot;\n&quot;,
+    &quot;P(dying|x=0.01):&quot;, predictionprobit$fit, &quot;\n&quot;)</code></pre>
+<pre><code>## Estimate: 1.986512 
+##  CI: 1.6543 2.420596 
+##  Deviance: 0.3136684 
+##  P(dying|x=0.01): 0.08424186 0.2448734 0.4982721 0.7523961 0.9144112</code></pre>
+</div>
+<div id="cloglog" class="section level2">
+<h2>Cloglog</h2>
+<pre class="r"><code>fitcloglog &lt;- glm(resp~pred, family = binomial(link = &quot;cloglog&quot;), data = data)
 summary(fitcloglog)</code></pre>
 <pre><code>## 
 ## Call:
-## glm(formula = resp ~ pred, family = binomial(link = &quot;cloglog&quot;))
+## glm(formula = resp ~ pred, family = binomial(link = &quot;cloglog&quot;), 
+##     data = data)
 ## 
 ## Coefficients:
 ##             Estimate Std. Error z value Pr(&gt;|z|)    
@@ -516,22 +529,39 @@ summary(fitcloglog)</code></pre>
 <pre><code>##                  2.5 %    97.5 %
 ## (Intercept) -2.6445686 -1.425454
 ## pred         0.5459821  0.964783</code></pre>
-<pre class="r"><code>exp(confint(fitcloglog))</code></pre>
+<pre class="r"><code>confint_cloglog &lt;- exp(confint(fitcloglog))</code></pre>
 <pre><code>## Waiting for profiling to be done...</code></pre>
-<pre><code>##                  2.5 %    97.5 %
-## (Intercept) 0.07103599 0.2403993
-## pred        1.72630302 2.6242181</code></pre>
-<pre class="r"><code>devcloglog &lt;- sum(residuals(fitcloglog,type=&#39;deviance&#39;)^2)
+<pre class="r"><code>devcloglog &lt;- sum(residuals(fitcloglog,type = &#39;deviance&#39;)^2)
 
-p_cloglog &lt;- predict(fitcloglog, newdata = data.frame(dose = 0.01), type = &quot;response&quot;)</code></pre>
+predictcloglog &lt;- predict(fitcloglog, data.frame(dose =0.01), se.fit=TRUE,type=&#39;response&#39;)</code></pre>
 <pre><code>## Warning: &#39;newdata&#39; had 1 row but variables found have 5 rows</code></pre>
-<p>Logit: $_1 = $ 3.1959999 The CI for <span class="math inline">\(\beta_1\)</span> is (2.29372916, 4.6932687). -
-Deviance: 0.3787483 $p(dying|X = 0.01) = $</p>
-<p>Probit: <span class="math inline">\(\beta =\)</span> 1.9865113 The CI
-for <span class="math inline">\(\beta_1\)</span> is (1.6542999,
-2.420596) - Deviance: 0.3136684</p>
-<p>Cloglog: $= $ 2.1102364. The CI for <span class="math inline">\(\beta_1\)</span> is (1.72630302, 2.6242181) -
-Deviance: 2.2304792</p>
+<pre class="r"><code>cat(&quot;Estimate:&quot;, exp(fitcloglog$coefficients[2]), &quot;\n&quot;,
+    &quot;CI:&quot;, c(confint_cloglog[2,1], confint_cloglog[2,2]), &quot;\n&quot;,
+    &quot;Deviance:&quot;, devcloglog, &quot;\n&quot;,
+    &quot;P(dying|x=0.01):&quot;, predictcloglog$fit, &quot;\n&quot;)</code></pre>
+<pre><code>## Estimate: 2.110277 
+##  CI: 1.726303 2.624218 
+##  Deviance: 2.230479 
+##  P(dying|x=0.01): 0.12727 0.2496909 0.454591 0.7217655 0.9327715</code></pre>
+<div id="b" class="section level3">
+<h3>b)</h3>
+<pre class="r"><code>beta0 &lt;-  fitlogit$coefficients[1]
+beta1 &lt;- fitlogit$coefficients[2]
+betacov &lt;- vcov(fitlogit) 
+x0fit &lt;- -beta0/beta1
+exp(x0fit)</code></pre>
+<pre><code>## (Intercept) 
+##    7.389056</code></pre>
+<pre class="r"><code>varx0=betacov[1,1]/(beta1^2)+betacov[2,2]*(beta0^2)/(beta1^4)-2*betacov[1,2]*beta0/(beta1^3)
+c(x0fit,sqrt(varx0)) # point est and se</code></pre>
+<pre><code>## (Intercept)        pred 
+##   2.0000000   0.1784367</code></pre>
+<pre class="r"><code>exp((x0fit+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0))) # 90% CI for LD50</code></pre>
+<pre><code>## [1] 5.509631 9.909583</code></pre>
+<p>We are 90% confident that the LD50 for this bioassay study is between
+5.509631 and 9.9095.</p>
+</div>
+</div>
 </div>
 <div id="problem-6" class="section level1">
 <h1>Problem 6</h1>
@@ -569,10 +599,19 @@ summary(mphfit)</code></pre>
 
 sum(residuals(mphfit,type=&#39;pearson&#39;)^2) </code></pre>
 <pre><code>## [1] 8.814299</code></pre>
-<pre class="r"><code>pval=1-pchisq(devmph,17-2)</code></pre>
-</div>
-<div id="b" class="section level3">
-<h3>b)</h3>
+<pre class="r"><code>pval=1-pchisq(devmph,17-2)
+
+
+hl &lt;- hoslem.test(mphfit$y, fitted(mphfit), g=10) 
+hl</code></pre>
+<pre><code>## 
+##  Hosmer and Lemeshow goodness of fit (GOF) test
+## 
+## data:  mphfit$y, fitted(mphfit)
+## X-squared = 1.6111, df = 8, p-value = 0.9907</code></pre>
+<p>The p value is 0.7795345, which means that we fail to reject the null
+hypothesis that there is no relationship between the predictors and the
+response. This means that the model fits the data ok. ### b)</p>
 <pre class="r"><code>confint(mphfit)</code></pre>
 <pre><code>## Waiting for profiling to be done...</code></pre>
 <pre><code>##                   2.5 %      97.5 %
@@ -583,11 +622,39 @@ sum(residuals(mphfit,type=&#39;pearson&#39;)^2) </code></pre>
 <pre><code>##                  2.5 %    97.5 %
 ## (Intercept) 0.08198885 0.4304708
 ## amount      1.01253611 1.0519063</code></pre>
+<p>For a unit increase in amount, the odds of enrollment increases by
+1.031434.</p>
 <p>We are 95% confident that the the odds ratio is between 1.01253611
-and 1.0519063 maening that a unit increase in the amount of money
+and 1.0519063 meaning that a unit increase in the amount of money
 increases the odds of enrollment by 2%-5%. Since the confidence interval
 does not include 1, we can say that the effect is statistically
 significant.</p>
+</div>
+<div id="c" class="section level3">
+<h3>c)</h3>
+<pre class="r"><code>beta0 &lt;- mphfit$coefficients[1]
+beta1 &lt;- mphfit$coefficients[2]
+betacov &lt;- vcov(mphfit)
+log_odds &lt;- log(0.4 / (1 - 0.4))
+scholarship_needed &lt;- (log_odds - beta0) / beta_1
+
+var_x &lt;- betacov[1,1] / (beta1^2) + 
+        betacov[2,2] * (beta0 - log_odds)^2 / (beta1^4) - 
+        2 * betacov[1,2] * (beta0 - log_odds) / (beta1^3)
+
+se_x &lt;- sqrt(var_x)
+
+ci_lower &lt;- scholarship_needed - 1.96 * se_x
+ci_upper &lt;- scholarship_needed + 1.96 * se_x
+
+cat(&quot;Estimate:&quot;, scholarship_needed, &quot;\n&quot;,
+    &quot;Standard Error:&quot;, se_x, &quot;\n&quot;,
+    &quot;CI Lower:&quot;, ci_lower, &quot;\n&quot;,
+    &quot;CI Upper:&quot;, ci_upper, &quot;\n&quot;)</code></pre>
+<pre><code>## Estimate: 0.388667 
+##  Standard Error: 4.873174 
+##  CI Lower: -9.162755 
+##  CI Upper: 9.940089</code></pre>
 </div>
 </div>
 
