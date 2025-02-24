@@ -48,7 +48,7 @@ library(MASS)
 $Odds = \frac{pi}{1-pi}$, which is the probability of an event occurring over the probability of the event not occurring. If you do $e^{\beta}$ to the coefficients in logistic regression, you will get the odds ratio. This is interpretable because it is in terms of the original equation and also easy to understand. 
 
 $log(odds) = log(pi/1-pi)$, which is the probability of odds ratio given that the values are in terms of log, which is less interpretable. The coefficients $\beta$ in logistic regression are in terms of log odds, such that a change in log-odds for a one-unit increase in the outcome. 
-f
+
 # Problem 3 
 
 
@@ -59,7 +59,7 @@ L2 Regularization: Adds the squared sum  of coefficients as the penalty term to 
 
 # Problem 4 
 
-
+![](IMG_0543.jpeg)
 
 # Problem 5
 
@@ -134,11 +134,39 @@ betacov <- vcov(fitlogit)
 x0fit <- -beta0/beta1
 exp(x0fit)
 varx0=betacov[1,1]/(beta1^2)+betacov[2,2]*(beta0^2)/(beta1^4)-2*betacov[1,2]*beta0/(beta1^3)
-c(x0fit,sqrt(varx0)) # point est and se
-exp((x0fit+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0))) # 90% CI for LD50
+c(x0fit,sqrt(varx0)) 
+cat("Estimate:", exp(x0fit), "\n",
+    "CI:", exp((x0fit+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0))), "\n")
 ```
 
-We are 90% confident that the LD50 for this bioassay study is between 5.509631 and 9.9095. 
+```{r}
+beta0 <-  fitprobit$coefficients[1]
+beta1 <- fitprobit$coefficients[2]
+betacov <- vcov(fitlogit) 
+x0fit <- -beta0/beta1
+exp(x0fit)
+varx0=betacov[1,1]/(beta1^2)+betacov[2,2]*(beta0^2)/(beta1^4)-2*betacov[1,2]*beta0/(beta1^3)
+c(x0fit,sqrt(varx0)) # point est and se
+
+cat("Estimate:", exp(x0fit), "\n",
+    "CI:", exp((x0fit+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0))), "\n")
+```
+
+
+```{r}
+beta0 <-  fitcloglog$coefficients[1]
+beta1 <- fitcloglog$coefficients[2]
+betacov <- vcov(fitlogit) 
+x0fit <- -beta0/beta1
+
+varx0=betacov[1,1]/(beta1^2)+betacov[2,2]*(beta0^2)/(beta1^4)-2*betacov[1,2]*beta0/(beta1^3)
+c(x0fit,sqrt(varx0)) # point est and se
+
+cat("Estimate:", exp(x0fit), "\n",
+    "CI:", exp((x0fit+c(qnorm(0.05),-qnorm(0.05))*sqrt(varx0))), "\n")
+  
+```
+
 
 # Problem 6 
 
@@ -187,7 +215,7 @@ beta0 <- mphfit$coefficients[1]
 beta1 <- mphfit$coefficients[2]
 betacov <- vcov(mphfit)
 log_odds <- log(0.4 / (1 - 0.4))
-scholarship_needed <- (log_odds - beta0) / beta_1
+scholarship_needed <- (log_odds - beta0) / beta1
 
 var_x <- betacov[1,1] / (beta1^2) + 
         betacov[2,2] * (beta0 - log_odds)^2 / (beta1^4) - 
